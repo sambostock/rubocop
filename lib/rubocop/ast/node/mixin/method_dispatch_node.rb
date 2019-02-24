@@ -244,7 +244,7 @@ module RuboCop
       PATTERN
 
       def_node_matcher :non_bare_access_modifier_declaration?, <<-PATTERN
-        (send nil? {:public :protected :private :module_function} _)
+        (send nil? {:public :protected :private :private_class_method :module_function} _)
       PATTERN
     end
   end
