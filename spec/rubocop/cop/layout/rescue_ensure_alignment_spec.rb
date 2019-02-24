@@ -488,6 +488,37 @@ RSpec.describe RuboCop::Cop::Layout::RescueEnsureAlignment, :config do
       end
     end
 
+    context 'rescue with private_class_method def' do
+      it 'registers an offense' do
+        expect_offense(<<-RUBY.strip_indent)
+          private_class_method def self.test
+            'foo'
+            rescue
+            ^^^^^^ `rescue` at 3, 2 is not aligned with `private_class_method def self.test` at 1, 0.
+            'baz'
+          end
+        RUBY
+
+        expect_correction(<<-RUBY.strip_indent)
+          private_class_method def self.test
+            'foo'
+          rescue
+            'baz'
+          end
+        RUBY
+      end
+
+      it 'correct alignment' do
+        expect_no_offenses(<<-RUBY.strip_indent)
+          private_class_method def self.test
+            'foo'
+          rescue
+            'baz'
+          end
+        RUBY
+      end
+    end
+
     context 'ensure with def' do
       it 'registers an offense' do
         expect_offense(<<-RUBY.strip_indent)
