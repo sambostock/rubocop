@@ -580,6 +580,37 @@ RSpec.describe RuboCop::Cop::Layout::RescueEnsureAlignment, :config do
         RUBY
       end
     end
+
+    context 'ensure with private_class_method def' do
+      it 'registers an offense' do
+        expect_offense(<<-RUBY.strip_indent)
+          private_class_method def self.test
+            'foo'
+            ensure
+            ^^^^^^ `ensure` at 3, 2 is not aligned with `private_class_method def self.test` at 1, 0.
+            'baz'
+          end
+        RUBY
+
+        expect_correction(<<-RUBY.strip_indent)
+          private_class_method def self.test
+            'foo'
+          ensure
+            'baz'
+          end
+        RUBY
+      end
+
+      it 'correct alignment' do
+        expect_no_offenses(<<-RUBY.strip_indent)
+          private_class_method def self.test
+            'foo'
+          ensure
+            'baz'
+          end
+        RUBY
+      end
+    end
   end
 
   context 'allows inline expression before' do
