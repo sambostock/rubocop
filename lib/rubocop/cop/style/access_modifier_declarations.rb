@@ -62,7 +62,7 @@ module RuboCop
         ].join(' ')
 
         def on_send(node)
-          return unless node.access_modifier?
+          return unless access_modifier?(node)
 
           if offense?(node)
             add_offense(node, location: :selector) do
@@ -76,8 +76,24 @@ module RuboCop
         private
 
         def offense?(node)
-          (group_style? && access_modifier_is_inlined?(node)) ||
-            (inline_style? && access_modifier_is_not_inlined?(node))
+          group_offense?(node) ||
+            inline_offense?(node) ||
+            invalid_access_modifier_offense?(node)
+        end
+
+        def group_offense?(node)
+          group_style? &&
+            access_modifier_is_inlined?(node) &&
+            access_modifier_can_be_grouped?(node)
+        end
+
+        def inline_offense?(node)
+          inline_style? && access_modifier_is_not_inlined?(node)
+        end
+
+        def invalid_access_modifier_offense?(node)
+          access_modifier_must_be_inlined?(node) &&
+            access_modifier_is_not_inlined?(node)
         end
 
         def group_style?
@@ -86,6 +102,14 @@ module RuboCop
 
         def inline_style?
           style == :inline
+        end
+
+        def access_modifier_can_be_grouped?(node)
+          !access_modifier_must_be_inlined?(node)
+        end
+
+        def access_modifier_must_be_inlined?(node)
+          private_class_method_modifier?(node)
         end
 
         def access_modifier_is_inlined?(node)
@@ -99,11 +123,19 @@ module RuboCop
         def message(node)
           access_modifier = node.loc.selector.source
 
-          if group_style?
+          if group_style? && access_modifier_can_be_grouped?(node)
             format(GROUP_STYLE_MESSAGE, access_modifier: access_modifier)
-          elsif inline_style?
+          elsif inline_style? || access_modifier_must_be_inlined?(node)
             format(INLINE_STYLE_MESSAGE, access_modifier: access_modifier)
           end
+        end
+
+        def access_modifier?(node)
+          node.access_modifier? || private_class_method_modifier?(node)
+        end
+
+        def private_class_method_modifier?(node)
+          node.method_name == :private_class_method
         end
       end
     end

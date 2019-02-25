@@ -28,6 +28,14 @@ RSpec.describe RuboCop::Cop::Style::AccessModifierDeclarations, :config do
       access_modifier: :module_function,
       construct: :module
     )
+
+    # private_class_method does not support group usage
+    it_behaves_like(
+      'enforces inline access modifier usage',
+      access_modifier: :private_class_method,
+      construct: :module,
+      receiver: :self
+    )
   end
 
   context 'when `inline` is configured' do
@@ -54,6 +62,13 @@ RSpec.describe RuboCop::Cop::Style::AccessModifierDeclarations, :config do
       'enforces inline access modifier usage',
       access_modifier: :module_function,
       construct: :module
+    )
+
+    it_behaves_like(
+      'enforces inline access modifier usage',
+      access_modifier: :private_class_method,
+      construct: :module,
+      receiver: :self
     )
   end
 end
