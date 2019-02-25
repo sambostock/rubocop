@@ -22,6 +22,12 @@ RSpec.describe RuboCop::Cop::Style::AccessModifierDeclarations, :config do
         construct: :module
       )
     end
+
+    it_behaves_like(
+      'enforces group access modifier usage',
+      access_modifier: :module_function,
+      construct: :module
+    )
   end
 
   context 'when `inline` is configured' do
@@ -43,5 +49,11 @@ RSpec.describe RuboCop::Cop::Style::AccessModifierDeclarations, :config do
         construct: :module
       )
     end
+
+    it_behaves_like(
+      'enforces inline access modifier usage',
+      access_modifier: :module_function,
+      construct: :module
+    )
   end
 end
