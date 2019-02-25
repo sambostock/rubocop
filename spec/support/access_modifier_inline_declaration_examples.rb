@@ -3,6 +3,8 @@
 RSpec.shared_examples 'enforces inline access modifier usage' do |options|
   access_modifier = options.fetch(:access_modifier)
   construct = options.fetch(:construct)
+  receiver = options.fetch(:receiver, nil)
+  method_definition = receiver ? "def #{receiver}.foo; end" : 'def foo; end'
 
   context "in a #{construct}" do
     it "offends when #{access_modifier} is not inlined" do
@@ -26,7 +28,7 @@ RSpec.shared_examples 'enforces inline access modifier usage' do |options|
     it "does not offend when #{access_modifier} is inlined with a method" do
       expect_no_offenses(<<-RUBY.strip_indent)
         #{construct} Test
-          #{access_modifier} def foo; end
+          #{access_modifier} #{method_definition}
         end
       RUBY
     end
@@ -36,7 +38,7 @@ RSpec.shared_examples 'enforces inline access modifier usage' do |options|
         #{construct} Test
           #{access_modifier} :foo
 
-          def foo; end
+          #{method_definition}
         end
       RUBY
     end

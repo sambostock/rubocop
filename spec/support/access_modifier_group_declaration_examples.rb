@@ -3,12 +3,14 @@
 RSpec.shared_examples 'enforces group access modifier usage' do |options|
   access_modifier = options.fetch(:access_modifier)
   construct = options.fetch(:construct)
+  receiver = options.fetch(:receiver, nil)
+  method_definition = receiver ? "def #{receiver}.foo; end" : 'def foo; end'
 
   context "in a #{construct}" do
     it "offends when #{access_modifier} is inlined with a method" do
       expect_offense(<<-RUBY.strip_indent)
         #{construct} Test
-          #{access_modifier} def foo; end
+          #{access_modifier} #{method_definition}
           #{'^' * access_modifier.length} `#{access_modifier}` should not be inlined in method definitions.
         end
       RUBY
@@ -20,7 +22,7 @@ RSpec.shared_examples 'enforces group access modifier usage' do |options|
           #{access_modifier} :foo
           #{'^' * access_modifier.length} `#{access_modifier}` should not be inlined in method definitions.
 
-          def foo; end
+          #{method_definition}
         end
       RUBY
     end
