@@ -4708,6 +4708,14 @@ rand(1...7)
 
 * [https://github.com/rubocop-hq/ruby-style-guide#random-numbers](https://github.com/rubocop-hq/ruby-style-guide#random-numbers)
 
+## Style/ReRaise
+
+Enabled by default | Safe | Supports autocorrection | VersionAdded | VersionChanged
+--- | --- | --- | --- | ---
+Enabled | Yes | No | - | -
+
+No documentation
+
 ## Style/RedundantBegin
 
 Enabled by default | Safe | Supports autocorrection | VersionAdded | VersionChanged
