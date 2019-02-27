@@ -21,7 +21,7 @@ RSpec.describe RuboCop::Cop::Style::ReRaise, :config do
               rescue#{error_classes} => error
                 report(error)
                 #{keyword} error
-                #{'^' * keyword.length}^^^^^^ BAD_PLACEHOLDER
+                #{'^' * keyword.length}^^^^^^ Prefer implicit `#{keyword}`
               end
             RUBY
 
@@ -59,7 +59,7 @@ RSpec.describe RuboCop::Cop::Style::ReRaise, :config do
                     try_other_thing!
                   rescue => error
                     #{keyword} error
-                    #{'^' * keyword.length}^^^^^^ BAD_PLACEHOLDER
+                    #{'^' * keyword.length}^^^^^^ Prefer implicit `#{keyword}`
                   end
                 end
               RUBY
@@ -118,7 +118,7 @@ RSpec.describe RuboCop::Cop::Style::ReRaise, :config do
                 rescue#{error_classes} => error
                   report(error)
                   #{keyword}
-                  #{'^' * keyword.length} BAD_PLACEHOLDER
+                  #{'^' * keyword.length} Prefer explicit `#{keyword} error`
                 end
               RUBY
 
@@ -141,7 +141,7 @@ RSpec.describe RuboCop::Cop::Style::ReRaise, :config do
                 rescue#{error_classes}
                   report('something')
                   #{keyword}
-                  #{'^' * keyword.length} BAD_PLACEHOLDER
+                  #{'^' * keyword.length} Prefer explicit `#{keyword}` (with argument)
                 end
               RUBY
 
@@ -207,7 +207,7 @@ RSpec.describe RuboCop::Cop::Style::ReRaise, :config do
             error = 123
           rescue => error
             raise
-            ^^^^^ BAD_PLACEHOLDER
+            ^^^^^ Prefer explicit `raise error`
           end
         RUBY
 
@@ -258,7 +258,7 @@ RSpec.describe RuboCop::Cop::Style::ReRaise, :config do
             error = 123
           rescue => error
             raise error
-            ^^^^^^^^^^^ BAD_PLACEHOLDER
+            ^^^^^^^^^^^ Prefer implicit `raise`
           end
         RUBY
 

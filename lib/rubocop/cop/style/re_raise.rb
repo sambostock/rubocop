@@ -8,30 +8,23 @@ module RuboCop
       class ReRaise < Cop
         include ConfigurableEnforcedStyle
 
-        MSG = 'BAD_PLACEHOLDER' # FIXME
-
-        def_node_matcher :raise_local_variable, <<-PATTERN
-          (send nil? {:raise :fail} (lvar $_))
-        PATTERN
-
-        def_node_matcher :rescue_node, <<-PATTERN
-          (rescue _
-            (resbody _ {(lvasgn $_) $nil?}
-              _
-            )
-            _
-          )
-        PATTERN
+        PREFER_IMPLICIT_MSG = 'Prefer implicit `%<keyword>s`'
+        PREFER_EXPLICIT_MSG = 'Prefer explicit `%<keyword>s` (with argument)'
+        PREFER_EXPLICIT_MSG_WITH_IDENTIFIER = 'Prefer explicit `%<keyword>s %<identifier>s`'
 
         def on_send(node)
           return unless %i[fail raise].include?(node.method_name)
 
-          if implicit_style? && implicitly_raising?(node)
-            && variables_match? && variable_not_shadowed?(node)
-            add_offense(node)
-          elsif explicit_style? && explicitly_raising?(node)
-            && variable_not_shadowed?(node)
-            add_offense(node)
+          if implicit_style? && explicitly_raising?(node) &&
+              variables_match?(node) && variable_not_shadowed?(node)
+            add_offense(node, message: format(PREFER_IMPLICIT_MSG, keyword: node.method_name))
+          elsif explicit_style? && implicitly_raising?(node) &&
+            variable_not_shadowed?(node)
+            if (identifier = rescue_variable_name(node))
+            add_offense(node, message: format(PREFER_EXPLICIT_MSG_WITH_IDENTIFIER, keyword: node.method_name, identifier: identifier))
+            else
+            add_offense(node, message: format(PREFER_EXPLICIT_MSG, keyword: node.method_name))
+            end
           end
         end
 
@@ -55,6 +48,23 @@ module RuboCop
 
         private
 
+        def_node_matcher :raise_local_variable, <<-PATTERN
+          (send nil? {:raise :fail} (lvar $_))
+        PATTERN
+
+        def_node_matcher :rescue_node, <<-PATTERN
+          (rescue _
+            (resbody _ {(lvasgn $_) $nil?}
+              _
+            )
+            _
+          )
+        PATTERN
+
+        def_node_search :shadow?, <<-PATTERN
+          (lvasgn % _)
+        PATTERN
+
         def implicit_style?
           style == :implicit
         end
@@ -63,7 +73,7 @@ module RuboCop
           style == :explicit
         end
 
-        def variables_match?
+        def variables_match?(node)
           rescue_variable_name(node) == raise_local_variable(node)
         end
 
@@ -71,7 +81,7 @@ module RuboCop
           raise_local_variable(node).nil?
         end
 
-        def explicity_raising?(node)
+        def explicitly_raising?(node)
           raise_local_variable(node)
         end
 
@@ -101,10 +111,6 @@ module RuboCop
 
           (parent.children & node.ancestors).any? { |n| shadow?(n, identifier) }
         end
-
-        def_node_search :shadow?, <<-PATTERN
-          (lvasgn % _)
-        PATTERN
 
         def rescue_variable_name(node)
           rescue_root_node = most_recent_rescue(node)
