@@ -33,7 +33,7 @@ module RuboCop
             if rescue_variable == raise_variable && rescue_variable_not_shadowed?(node)
               add_offense(node)
             end
-          elsif explicit_style? && raise_variable.nil?
+          elsif explicit_style? && raise_variable.nil? && rescue_variable_not_shadowed?(node)
             add_offense(node)
           end
         end
@@ -86,7 +86,7 @@ module RuboCop
           parent = most_recent_rescue(node)
           identifier = rescue_variable_name(node)
 
-          !shadow?(parent, identifier)
+          (parent.children & node.ancestors).none? { |n| shadow?(n, identifier) }
         end
 
         def_node_search :shadow?, <<-PATTERN
