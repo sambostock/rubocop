@@ -187,6 +187,39 @@ RSpec.describe RuboCop::Cop::Style::ReRaise, :config do
         end
       OUTPUT
     end
+
+    context 'when rescue variable is shadowed' do
+      it 'raises no offenses' do
+        expect_no_offenses(<<-RUBY.strip_indent)
+          def foo
+          rescue => error
+            error = CustomError
+            raise
+          end
+        RUBY
+      end
+    end
+
+    context 'when irrelevant shadowing occurs' do
+      it 'registers an offense' do
+        expect_offense(<<-RUBY.strip_indent)
+          def foo
+            error = 123
+          rescue => error
+            raise
+            ^^^^^ BAD_PLACEHOLDER
+          end
+        RUBY
+
+        expect_correction(<<-RUBY.strip_indent)
+          def foo
+            error = 123
+          rescue => error
+            raise error
+          end
+        RUBY
+      end
+    end
   end
 
   context 'when EnforcedStyle is implicit' do
@@ -206,14 +239,35 @@ RSpec.describe RuboCop::Cop::Style::ReRaise, :config do
       OUTPUT
     end
 
-    context 'rescue variable is shadowed' do
+    context 'when rescue variable is shadowed' do
       it 'raises no offenses' do
         expect_no_offenses(<<-RUBY.strip_indent)
-        def foo
-        rescue => error
-          error = CustomError
-          raise error
-        end
+          def foo
+          rescue => error
+            error = CustomError
+            raise error
+          end
+        RUBY
+      end
+    end
+
+    context 'when irrelevant shadowing occurs' do
+      it 'registers an offense' do
+        expect_offense(<<-RUBY.strip_indent)
+          def foo
+            error = 123
+          rescue => error
+            raise error
+            ^^^^^^^^^^^ BAD_PLACEHOLDER
+          end
+        RUBY
+
+        expect_correction(<<-RUBY.strip_indent)
+          def foo
+            error = 123
+          rescue => error
+            raise
+          end
         RUBY
       end
     end

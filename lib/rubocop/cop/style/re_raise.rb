@@ -30,7 +30,7 @@ module RuboCop
           raise_variable = raise_local_variable(node)
 
           if implicit_style? && raise_variable
-            if rescue_variable == raise_variable # && rescue_variable_not_shadowed # FIXME
+            if rescue_variable == raise_variable && rescue_variable_not_shadowed?(node)
               add_offense(node)
             end
           elsif explicit_style? && raise_variable.nil?
@@ -81,6 +81,17 @@ module RuboCop
         def arguments_range(node)
           node.location.expression.with(begin_pos: node.location.selector.end_pos)
         end
+
+        def rescue_variable_not_shadowed?(node)
+          parent = most_recent_rescue(node)
+          identifier = rescue_variable_name(node)
+
+          !shadow?(parent, identifier)
+        end
+
+        def_node_search :shadow?, <<-PATTERN
+          (lvasgn % _)
+        PATTERN
 
         def rescue_variable_name(node)
           rescue_root_node = most_recent_rescue(node)
