@@ -11,7 +11,7 @@ module RuboCop
         MSG = 'BAD_PLACEHOLDER' # FIXME
 
         def_node_matcher :raise_local_variable, <<-PATTERN
-          (send nil? :raise (lvar $_))
+          (send nil? {:raise :fail} (lvar $_))
         PATTERN
 
         def_node_matcher :rescue_node, <<-PATTERN
@@ -48,23 +48,19 @@ module RuboCop
         def autocorrect(node)
           lambda do |corrector|
             if implicit_style?
-              # drop arguments to raise
-              # "raise(x)" => "raise"
-              # "raise x"  => "raise"
               range = node.location.expression.with(begin_pos: node.location.selector.end_pos)
               corrector.remove(range)
             elsif explicit_style?
-              # add argument if unambiguous
-              #   rescue => error
-              #     raise
-              #
-              #   rescue => error
-              #     raise error
-              #
-              # do nothing if ambiguous
-              # FIXME: actually do this
-              # FIXME: handle `raise()` => `raise(error)`, not `raise() error`
-              corrector.insert_after(node.location.expression, ' error')
+              rescue_root_node = ancestor_rescue_node(node)
+              rescue_variable = rescue_root_node && rescue_node(rescue_root_node)
+
+              if rescue_variable
+                if node.parenthesized_call?
+                  corrector.insert_after(node.location.begin, rescue_variable)
+                else
+                  corrector.insert_after(node.location.expression, " #{rescue_variable}")
+                end
+              end
             end
           end
         end
