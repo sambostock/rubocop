@@ -26,14 +26,11 @@ module RuboCop
         def on_send(node)
           return unless %i[fail raise].include?(node.method_name)
 
-          rescue_variable = rescue_variable_name(node)
-          raise_variable = raise_local_variable(node)
-
-          if implicit_style? && raise_variable
-            if rescue_variable == raise_variable && rescue_variable_not_shadowed?(node)
-              add_offense(node)
-            end
-          elsif explicit_style? && raise_variable.nil? && rescue_variable_not_shadowed?(node)
+          if implicit_style? && implicitly_raising?(node)
+            && variables_match? && variable_not_shadowed?(node)
+            add_offense(node)
+          elsif explicit_style? && explicitly_raising?(node)
+            && variable_not_shadowed?(node)
             add_offense(node)
           end
         end
@@ -43,13 +40,13 @@ module RuboCop
             if implicit_style?
               remove_arguments(corrector, node)
             elsif explicit_style?
-              rescue_variable = rescue_variable_name(node)
+              identifier = rescue_variable_name(node)
 
-              if rescue_variable
+              if identifier
                 if node.parenthesized_call?
-                  insert_only_argument(corrector, node, rescue_variable)
+                  insert_only_argument(corrector, node, identifier)
                 else
-                  add_only_argument(corrector, node, rescue_variable)
+                  add_only_argument(corrector, node, identifier)
                 end
               end
             end
@@ -64,6 +61,18 @@ module RuboCop
 
         def explicit_style?
           style == :explicit
+        end
+
+        def variables_match?
+          rescue_variable_name(node) == raise_local_variable(node)
+        end
+
+        def implicitly_raising?(node)
+          raise_local_variable(node).nil?
+        end
+
+        def explicity_raising?(node)
+          raise_local_variable(node)
         end
 
         def remove_arguments(corrector, node)
@@ -82,11 +91,15 @@ module RuboCop
           node.location.expression.with(begin_pos: node.location.selector.end_pos)
         end
 
-        def rescue_variable_not_shadowed?(node)
+        def variable_not_shadowed?(node)
+          !variable_shadowed?(node)
+        end
+
+        def variable_shadowed?(node)
           parent = most_recent_rescue(node)
           identifier = rescue_variable_name(node)
 
-          (parent.children & node.ancestors).none? { |n| shadow?(n, identifier) }
+          (parent.children & node.ancestors).any? { |n| shadow?(n, identifier) }
         end
 
         def_node_search :shadow?, <<-PATTERN
