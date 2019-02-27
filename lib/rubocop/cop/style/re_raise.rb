@@ -26,21 +26,14 @@ module RuboCop
         def on_send(node)
           return unless %i[fail raise].include?(node.method_name)
 
-          rescue_root_node = ancestor_rescue_node(node)
-          rescue_variable = rescue_root_node && rescue_node(rescue_root_node)
+          rescue_variable = rescue_variable_name(node)
           raise_variable = raise_local_variable(node)
 
           if implicit_style? && raise_variable
             if rescue_variable == raise_variable # && rescue_variable_not_shadowed # FIXME
-              # rescue => error
-              #   raise error
               add_offense(node)
             end
           elsif explicit_style? && raise_variable.nil?
-            # TODO: Should !rescue_variable.nil? be a special case?
-            #   rescue => error
-            #     raise
-
             add_offense(node)
           end
         end
@@ -48,17 +41,15 @@ module RuboCop
         def autocorrect(node)
           lambda do |corrector|
             if implicit_style?
-              range = node.location.expression.with(begin_pos: node.location.selector.end_pos)
-              corrector.remove(range)
+              remove_arguments(corrector, node)
             elsif explicit_style?
-              rescue_root_node = ancestor_rescue_node(node)
-              rescue_variable = rescue_root_node && rescue_node(rescue_root_node)
+              rescue_variable = rescue_variable_name(node)
 
               if rescue_variable
                 if node.parenthesized_call?
-                  corrector.insert_after(node.location.begin, rescue_variable)
+                  insert_only_argument(corrector, node, rescue_variable)
                 else
-                  corrector.insert_after(node.location.expression, " #{rescue_variable}")
+                  add_only_argument(corrector, node, rescue_variable)
                 end
               end
             end
@@ -75,7 +66,30 @@ module RuboCop
           style == :explicit
         end
 
-        def ancestor_rescue_node(node)
+        def remove_arguments(corrector, node)
+          corrector.remove(arguments_range(node))
+        end
+
+        def insert_only_argument(corrector, node, argument)
+          corrector.insert_after(node.location.begin, argument)
+        end
+
+        def add_only_argument(corrector, node, argument)
+          corrector.insert_after(node.location.expression, " #{argument}")
+        end
+
+        def arguments_range(node)
+          node.location.expression.with(begin_pos: node.location.selector.end_pos)
+        end
+
+        def rescue_variable_name(node)
+          rescue_root_node = most_recent_rescue(node)
+          rescue_root_node && rescue_node(rescue_root_node).tap do |variable|
+            yield variable if block_given?
+          end
+        end
+
+        def most_recent_rescue(node)
           node.each_ancestor.find(&:rescue_type?)
         end
       end
