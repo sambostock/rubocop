@@ -187,6 +187,18 @@ RSpec.describe RuboCop::Cop::Style::ReRaise, :config do
         end
       OUTPUT
     end
+
+    context 'rescue variable is shadowed' do
+      it 'raises no offenses' do
+        expect_no_offenses(<<-RUBY.strip_indent)
+        def foo
+        rescue => error
+          error = CustomError
+          raise error
+        end
+        RUBY
+      end
+    end
   end
 
   context 'when EnforcedStyle is implicit' do
