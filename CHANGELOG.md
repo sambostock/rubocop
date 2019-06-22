@@ -2,6 +2,8 @@
 
 ## master (unreleased)
 
+* Add new `Style/PrivateAttributes` cop. ([@sambostock][])
+
 ### New features
 
 * [#7150](https://github.com/rubocop-hq/rubocop/pull/7150): Add `AllowIfModifier` option to `Style/IfInsideElse` cop. ([@koic][])

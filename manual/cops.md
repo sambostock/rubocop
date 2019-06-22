@@ -405,6 +405,7 @@ In the following section you find all available cops:
 * [Style/PercentQLiterals](cops_style.md#stylepercentqliterals)
 * [Style/PerlBackrefs](cops_style.md#styleperlbackrefs)
 * [Style/PreferredHashMethods](cops_style.md#stylepreferredhashmethods)
+* [Style/PrivateAttributes](cops_style.md#styleprivateattributes)
 * [Style/Proc](cops_style.md#styleproc)
 * [Style/RaiseArgs](cops_style.md#styleraiseargs)
 * [Style/RandomWithOffset](cops_style.md#stylerandomwithoffset)

@@ -4793,6 +4793,65 @@ EnforcedStyle | `short` | `short`, `verbose`
 
 * [https://rubystyle.guide#hash-key](https://rubystyle.guide#hash-key)
 
+## Style/PrivateAttributes
+
+Enabled by default | Safe | Supports autocorrection | VersionAdded | VersionChanged
+--- | --- | --- | --- | ---
+Enabled | Yes | No | 0.72 | -
+
+Attribute method access should be modified either implicitly with group access modifiers, or explicitly
+overridden with inline access modifiers.
+
+### Examples
+
+#### EnforcedStyle: implicit (default)
+
+```ruby
+# Modify attribute method access by defining them within access modifier groups.
+
+# bad
+attr_reader :foo
+private :foo
+
+# bad
+attr_writer :foo
+private :foo=
+
+# good
+private
+
+attr_reader :foo
+
+# good
+private
+
+attr_writer :foo
+```
+#### EnforcedStyle: explicit
+
+```ruby
+# Modify attribute method access by defining them in outside any access modifier group, and explicitly
+overridding their access
+
+# bad
+private
+
+attr_reader :foo
+
+# bad
+private
+
+attr_writer :foo
+
+# good
+attr_reader :foo
+private :foo
+
+# good
+attr_writer :foo
+private :foo=
+```
+
 ## Style/Proc
 
 Enabled by default | Safe | Supports autocorrection | VersionAdded | VersionChanged

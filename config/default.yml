@@ -3314,6 +3314,11 @@ Style/PreferredHashMethods:
     - short
     - verbose
 
+Style/PrivateAttributes:
+  Description: 'TODO: Write a description of the cop.'
+  Enabled: true
+  VersionAdded: '0.72'
+
 Style/Proc:
   Description: 'Use proc instead of Proc.new.'
   StyleGuide: '#proc'
