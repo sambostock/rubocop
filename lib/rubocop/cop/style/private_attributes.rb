@@ -74,7 +74,7 @@ module RuboCop
           "`%{access_modifier} :%{attribute_name}=`"
 
         def_node_matcher :access_modifier_with_arguments?, <<-PATTERN
-          (send nil? ${:public :private :protected}
+          (send nil? ${:public :private :protected :module_function}
             $(sym _)+
           )
         PATTERN

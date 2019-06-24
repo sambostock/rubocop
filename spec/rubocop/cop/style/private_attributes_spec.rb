@@ -2,6 +2,7 @@
 
 RSpec.describe RuboCop::Cop::Style::PrivateAttributes, :config do
   ACCESS_MODIFIERS = %i(
+    module_function
     private
     protected
     public
