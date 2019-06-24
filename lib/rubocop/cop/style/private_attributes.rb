@@ -140,11 +140,12 @@ module RuboCop
                   end
                 end
 
-              offense_message = message_template % {
+              offense_message = format(
+                message_template,
                 attribute_name: attribute_name,
                 access_modifier: access_modifier,
                 attribute_method: definition.method_name,
-              }
+              )
 
               add_offense(message_node, message: offense_message)
             end
@@ -175,7 +176,7 @@ module RuboCop
 
               message_template && add_offense(
                 attribute,
-                message: message_template % { attribute_name: attribute_name, access_modifier: access_modifier },
+                message: format(message_template, attribute_name: attribute_name, access_modifier: access_modifier),
               )
             end
           end
