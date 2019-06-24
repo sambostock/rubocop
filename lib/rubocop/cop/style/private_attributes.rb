@@ -98,11 +98,8 @@ module RuboCop
         PATTERN
 
         def on_send(node)
-          if implicit_style?
-            check_implicit_style_respected(node)
-          elsif explicit_style?
-            check_explicit_style_respected(node)
-          end
+          (implicit_style? && check_implicit_style_respected(node)) ||
+          (explicit_style? && check_explicit_style_respected(node))
         end
 
         private
