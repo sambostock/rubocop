@@ -91,6 +91,7 @@ module RuboCop
           )
         PATTERN
 
+        # TODO: See if this can leverage existing methods
         def_node_matcher :attribute_method?, <<-PATTERN
           (send nil? {:attr_accessor :attr_reader :attr_writer}
             $...
@@ -113,29 +114,28 @@ module RuboCop
         end
 
         def check_implicit_style_respected(node)
+          return unless node.parent
+
           access_modifier_with_arguments?(node) do |access_modifier, message_nodes|
             message_nodes.each do |message_node|
-              break unless node.parent
-
               message_name = message_node.value
               break unless (definition = find_definition message_name, node.parent)
 
               attribute_name = message_name.to_s.chomp('=').to_sym
 
-              message_template =
-                if definition.method_name == :attr_accessor
-                  if message_name.to_s.end_with? '='
-                    DEFINE_IMPLICIT_ATTR_ACCESSOR_WRITER_MESSAGE
-                  else
-                    DEFINE_IMPLICIT_ATTR_ACCESSOR_READER_MESSAGE
-                  end
-                else
-                  if message_name.to_s.end_with? '='
-                    DEFINE_IMPLICIT_ATTR_WRITER_MESSAGE
-                  else
-                    DEFINE_IMPLICIT_ATTR_READER_MESSAGE
-                  end
-                end
+              message_template = if definition.method_name == :attr_accessor
+                                   if message_name.to_s.end_with? '='
+                                     DEFINE_IMPLICIT_ATTR_ACCESSOR_WRITER_MESSAGE
+                                   else
+                                     DEFINE_IMPLICIT_ATTR_ACCESSOR_READER_MESSAGE
+                                   end
+                                 else
+                                   if message_name.to_s.end_with? '='
+                                     DEFINE_IMPLICIT_ATTR_WRITER_MESSAGE
+                                   else
+                                     DEFINE_IMPLICIT_ATTR_READER_MESSAGE
+                                   end
+                                 end
 
               offense_message = format(
                 message_template,
@@ -161,15 +161,14 @@ module RuboCop
             attributes.each do |attribute|
               attribute_name = attribute.value
 
-              message_template =
-                case node.method_name
-                when :attr_accessor
-                  DEFINE_EXPLICIT_ATTR_ACCESSOR_MESSAGE
-                when :attr_reader
-                  DEFINE_EXPLICIT_ATTR_READER_MESSAGE
-                when :attr_writer
-                  DEFINE_EXPLICIT_ATTR_WRITER_MESSAGE
-                end
+              message_template = case node.method_name
+                                 when :attr_accessor
+                                   DEFINE_EXPLICIT_ATTR_ACCESSOR_MESSAGE
+                                 when :attr_reader
+                                   DEFINE_EXPLICIT_ATTR_READER_MESSAGE
+                                 when :attr_writer
+                                   DEFINE_EXPLICIT_ATTR_WRITER_MESSAGE
+                                 end
 
               message_template && add_offense(
                 attribute,
