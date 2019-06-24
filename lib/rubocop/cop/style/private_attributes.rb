@@ -50,6 +50,8 @@ module RuboCop
       #   private :foo=
       #
       class PrivateAttributes < Cop
+        include ConfigurableEnforcedStyle
+
         DEFINE_IMPLICIT_ATTR_ACCESSOR_WRITER_MESSAGE = "Make `%{attribute_name}=` %{access_modifier} by defining " \
           "`%{attribute_method} :%{attribute_name}` in a `%{access_modifier}` section, or by extracting " \
           "`attr_writer :%{attribute_name}` defined in a `%{access_modifier}` section"
@@ -96,15 +98,22 @@ module RuboCop
         PATTERN
 
         def on_send(node)
-          case cop_config['EnforcedStyle']
-          when 'implicit'
+          if implicit_style?
             check_implicit_style_respected(node)
-          when 'explicit'
+          elsif explicit_style?
             check_explicit_style_respected(node)
           end
         end
 
         private
+
+        def implicit_style?
+          style == :implicit
+        end
+
+        def explicit_style?
+          style == :explicit
+        end
 
         def check_implicit_style_respected(node)
           access_modifier_with_arguments?(node) do |access_modifier, message_nodes|

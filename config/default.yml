@@ -3315,9 +3315,13 @@ Style/PreferredHashMethods:
     - verbose
 
 Style/PrivateAttributes:
-  Description: 'TODO: Write a description of the cop.'
+  Description: 'Define attribute methods inside group access modifier or override via inline modifier'
   Enabled: true
   VersionAdded: '0.72'
+  EnforcedStyle: implicit
+  SupportedStyles:
+    - implicit
+    - explicit
 
 Style/Proc:
   Description: 'Use proc instead of Proc.new.'
