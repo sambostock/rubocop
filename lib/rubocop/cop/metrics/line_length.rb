@@ -167,11 +167,54 @@ module RuboCop
         def ignored_line?(line, line_index)
           matches_ignored_pattern?(line) ||
             shebang?(line, line_index) ||
-            heredocs && line_in_permitted_heredoc?(line_index.succ)
+            heredocs && line_in_permitted_heredoc?(line_index.succ) ||
+            allow_string_literals? && string_literal?(line, line_index)
         end
 
         def shebang?(line, line_index)
           line_index.zero? && line.start_with?('#!')
+        end
+
+        def string_literal?(line, line_index)
+          # Not sure if there's a better way to identify tokens by line
+          line_number = line_index + 1
+          line_tokens = processed_source.tokens.select { |token| token.line == line_number }
+          last_column = line.length - 1
+          # newline_column = line.length - 1
+          # trailer_column = line.length - 2
+          nesting = 0
+
+          line_tokens.all? do |token|
+            # TODO: Deal with trailers elegantly
+            # NL is always last
+            # COMMA is last, or second last, if a NL is there
+            # next true if token.column == newline_column && token.type == :tNL
+            # next true if token.column == trailer_column && token.type == :tCOMMA
+            next true if token.column == last_column && token.type == :tNL
+            next true if token.column == last_column && token.type == :tCOMMA
+            binding.pry if token.type == :tCOMMA
+
+            case token.type
+            when
+              :tSTRING, # Simple string literals consist of only this token
+              :tSTRING_BEG, :tSTRING_END, # These delimit interpolation
+              :tSTRING_CONTENT, # This is string content inside a string containing interpolation
+              :tXSTRING_BEG, # This is the beginning of a shell command literal
+              :tREGEXP_BEG, :tREGEXP_OPT, # These delimit RegExp literals
+              :tSYMBOL, :tSYMBEG,
+              # These identify symbol literals, with and without interpolation, respectively. There is no special end token.
+              :tINTEGER, :tFLOAT # This is a REALLY long number. Seriously, what are you doing?
+              true
+            when :tSTRING_DBEG # This starts interpolation
+              nesting += 1
+              true
+            when :tSTRING_DEND # This ends interpolation
+              nesting -= 1
+              true
+            else # Arbitrary tokens are allowed inside interpolation
+              nesting > 0
+            end
+          end.tap { |legal| puts("\n", line, line_tokens, "\n") unless legal }
         end
 
         def register_offense(loc, line, line_index)
@@ -196,6 +239,10 @@ module RuboCop
 
         def max
           cop_config['Max']
+        end
+
+        def allow_string_literals?
+          cop_config['AllowLiterals']
         end
 
         def allow_heredoc?
@@ -223,6 +270,11 @@ module RuboCop
             range.cover?(line_number) &&
               (allowed_heredoc == true || allowed_heredoc.include?(delimiter))
           end
+        end
+
+        def line_only_includes_string?(line_number)
+          # Should allow only string literals, maybe also allowing trailing comma
+          # Start with just string literal
         end
 
         def allow_uri?

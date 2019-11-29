@@ -5,6 +5,83 @@ RSpec.describe RuboCop::Cop::Metrics::LineLength, :config do
 
   let(:cop_config) { { 'Max' => 80, 'IgnoredPatterns' => nil } }
 
+  context 'ignore literals (string, numbers, etc)!!!' do
+    let(:cop_config) do
+      { 'Max' => 8, 'AllowLiterals' => true, }
+    end
+
+    it "accepts lines consisting only of literals" do
+      expect_no_offenses(<<~RUBY)
+        '2345678'
+        "2345678"
+
+        %(345678)
+        %q(45678)
+        %Q(45678)
+
+        %x(clear)
+
+        /2345678/
+        %r(45678)
+
+        :__456789
+        :"_45678"
+
+        123456789
+
+        1234567.9
+
+        123456e-9
+        1.23456E9
+
+        0d3456789
+        0D3456789
+
+        0xaa56789
+        0xAa56789
+        0xAA56789
+        0Xaa56789
+        0XAa56789
+        0XaA56789
+
+        023456701
+        0o3456701
+        0O3456701
+
+        0b0000001
+        0B0000001
+      RUBY
+    end
+
+    it "accepts a line consisting only of a literal with interpolation" do
+      expect_no_offenses(<<~'RUBY')
+        "23#{6}8"
+
+        %(3#{6}8)
+        %Q(#{6}8)
+
+        %x(#{67})
+
+        /2#{56}8/
+        %r(#{6}8)
+
+        :"_#{7}8"
+      RUBY
+    end
+
+    it "accepts a line containing adjacent string literals" do
+      expect_no_offenses("'abc' '123'")
+    end
+
+    it "accepts a line containing just a literal with trailing comma" do
+      expect_no_offenses(<<~RUBY)
+        foo(
+          "4567",
+        )
+      RUBY
+    end
+  end
+
   it "registers an offense for a line that's 81 characters wide" do
     inspect_source('#' * 81)
     expect(cop.offenses.size).to eq(1)
@@ -836,7 +913,7 @@ RSpec.describe RuboCop::Cop::Metrics::LineLength, :config do
         end
       end
 
-      context 'semicolons  inside string literal' do
+      context 'semicolons inside string literal' do
         it 'adds offense and autocorrects elsewhere' do
           expect_offense(<<~RUBY)
             "00000000000000000;0000000000000000000'000000;00000'0000;0000;000"
