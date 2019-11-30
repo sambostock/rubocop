@@ -54,13 +54,13 @@ RSpec.describe RuboCop::Cop::Metrics::LineLength, :config do
     end
 
     it "accepts a line consisting only of a literal with interpolation" do
-      expect_no_offenses(<<~'RUBY')
+      expect_no_offenses(<<~'RUBY') # FIXME: Why is this tSTRING_END
         "23#{6}8"
 
         %(3#{6}8)
         %Q(#{6}8)
 
-        %x(#{67})
+        %x(#{6}8)
 
         /2#{56}8/
         %r(#{6}8)
