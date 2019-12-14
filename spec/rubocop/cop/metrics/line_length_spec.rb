@@ -80,6 +80,102 @@ RSpec.describe RuboCop::Cop::Metrics::LineLength, :config do
         )
       RUBY
     end
+
+    it "rejects lines containing things other than literals" do
+      expect_offense(<<~RUBY)
+        v = '678'
+                ^ Line is too long. [9/8]
+
+        '234567';
+                ^ Line is too long. [9/8]
+
+        {
+          a: 'bc'
+                ^ Line is too long. [9/8]
+        }
+
+        '' # text
+                ^ Line is too long. [9/8]
+
+        1 + 56789
+                ^ Line is too long. [9/8]
+
+        (2345678)
+                ^ Line is too long. [9/8]
+      RUBY
+    end
+
+    context 'with disallowed interpolation' do
+      let(:cop_config) do
+        { 'Max' => 8, 'AllowLiterals' => { 'AllowInterpolation' => false, }, }
+      end
+
+      it "accepts lines consisting only of literals" do
+        expect_no_offenses(<<~RUBY)
+          '2345678'
+          "2345678"
+
+          %(345678)
+          %q(45678)
+          %Q(45678)
+
+          %x(clear)
+
+          /2345678/
+          %r(45678)
+
+          :__456789
+          :"_45678"
+
+          123456789
+
+          1234567.9
+
+          123456e-9
+          1.23456E9
+
+          0d3456789
+          0D3456789
+
+          0xaa56789
+          0xAa56789
+          0xAA56789
+          0Xaa56789
+          0XAa56789
+          0XaA56789
+
+          023456701
+          0o3456701
+          0O3456701
+
+          0b0000001
+          0B0000001
+        RUBY
+      end
+
+      it 'disallows interpolation' do
+        expect_offense(<<~'RUBY') # FIXME: Why is this tSTRING_END
+          "23#{6}8"
+                  ^ Line is too long. [9/8]
+
+          %(3#{6}8)
+                  ^ Line is too long. [9/8]
+          %Q(#{6}8)
+                  ^ Line is too long. [9/8]
+
+          %x(#{6}8)
+                  ^ Line is too long. [9/8]
+
+          /2#{56}8/
+                  ^ Line is too long. [9/8]
+          %r(#{6}8)
+                  ^ Line is too long. [9/8]
+
+          :"_#{7}8"
+                  ^ Line is too long. [9/8]
+        RUBY
+      end
+    end
   end
 
   it "registers an offense for a line that's 81 characters wide" do

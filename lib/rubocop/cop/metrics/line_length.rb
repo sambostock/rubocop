@@ -183,7 +183,7 @@ module RuboCop
           last_column = line.length - 1
           nesting = 0
 
-          puts("\n#{line}\n#{line_tokens.reject{|t|t.type==:tNL}.map {|t| [t.text, t.type] }.to_h}\n") if line_tokens.any? { |t| %i(tSTRING_BEG tXSTRING_BEG tSYMBEG tREGEXP_BEG).include?(t.type) }
+          false && puts("\n#{line}\n#{line_tokens.reject{|t|t.type==:tNL}.map {|t| [t.text, t.type] }.to_h}\n") if line_tokens.any? { |t| %i(tSTRING_BEG tXSTRING_BEG tSYMBEG tREGEXP_BEG).include?(t.type) }
 
           line_tokens.all? do |token|
             next true if token.column == newline_column && token.type == :tNL
@@ -192,7 +192,7 @@ module RuboCop
             case token.type
             when
               :tSTRING, # Simple string literals consist of only this token
-              :tSTRING_BEG, :tSTRING_END, # These delimit interpolation
+              :tSTRING_BEG, :tSTRING_END,
               :tSTRING_CONTENT, # This is string content inside a string containing interpolation
               :tXSTRING_BEG, # This is the beginning of a shell command literal.
               :tREGEXP_BEG, :tREGEXP_OPT, # These delimit RegExp literals
@@ -202,15 +202,19 @@ module RuboCop
               :tINTEGER, :tFLOAT # This is a REALLY long number. Seriously, what are you doing?
               true
             when :tSTRING_DBEG # This starts interpolation
-              nesting += 1
-              true
+              if allow_interpolation?
+                nesting += 1
+                true
+              else
+                false
+              end
             when :tSTRING_DEND # This ends interpolation
               nesting -= 1
               true
             else # Arbitrary tokens are allowed inside interpolation
               nesting > 0
             end
-          end.tap { |legal| puts("\n", line, line_tokens, last_column, "\n") unless legal }
+          end.tap { |legal| false && puts("\n", line, line_tokens, last_column, "\n") unless legal }
         end
 
         def register_offense(loc, line, line_index)
@@ -239,6 +243,13 @@ module RuboCop
 
         def allow_string_literals?
           cop_config['AllowLiterals']
+        end
+
+        def allow_interpolation?
+          literals_config = cop_config['AllowLiterals']
+
+          literals_config == true ||
+            (literals_config.respond_to?(:[]) && literals_config['AllowInterpolation'])
         end
 
         def allow_heredoc?
