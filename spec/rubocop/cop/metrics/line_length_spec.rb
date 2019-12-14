@@ -10,7 +10,8 @@ RSpec.describe RuboCop::Cop::Metrics::LineLength, :config do
       { 'Max' => 8, 'AllowLiterals' => true, }
     end
 
-    it "accepts lines consisting only of literals" do
+    context 'interpolation free literals' do
+    it 'accepts lines consisting of only string literals' do
       expect_no_offenses(<<~RUBY)
         '2345678'
         "2345678"
@@ -18,15 +19,31 @@ RSpec.describe RuboCop::Cop::Metrics::LineLength, :config do
         %(345678)
         %q(45678)
         %Q(45678)
+      RUBY
+    end
 
-        %x(clear)
-
+    it 'accepts lines consisting of only regular expression literals' do
+      expect_no_offenses(<<~RUBY)
         /2345678/
         %r(45678)
+      RUBY
+    end
 
+    it 'accepts lines consisting of only shell command literals' do
+      expect_no_offenses(<<~RUBY)
+        %x(clear)
+      RUBY
+    end
+
+    it 'accepts lines consisting of only symbol literals' do
+      expect_no_offenses(<<~RUBY)
         :__456789
         :"_45678"
+      RUBY
+    end
 
+    it "accepts lines consisting only of numeric literals" do
+      expect_no_offenses(<<~RUBY)
         123456789
 
         1234567.9
@@ -53,56 +70,102 @@ RSpec.describe RuboCop::Cop::Metrics::LineLength, :config do
       RUBY
     end
 
-    it "accepts a line consisting only of a literal with interpolation" do
-      expect_no_offenses(<<~'RUBY') # FIXME: Why is this tSTRING_END
-        "23#{6}8"
+    context 'literals containing interpolation' do
+      it 'accepts lines consisting only of interpolated string literals' do
+        expect_no_offenses(<<~'RUBY') # FIXME: Why is this tSTRING_END
+          "23#{6}8"
 
-        %(3#{6}8)
-        %Q(#{6}8)
+          %(3#{6}8)
+          %Q(#{6}8)
+        RUBY
+      end
 
-        %x(#{6}8)
+      it 'accepts lines consting of only interpolated shell command literals' do
+        expect_no_offenses(<<~'RUBY') # FIXME: Why is this tSTRING_END
+          %x(#{6}8)
+        RUBY
+      end
 
-        /2#{56}8/
-        %r(#{6}8)
+      it 'accepts lines consisting of only interpolated regular expression literals' do
+        expect_no_offenses(<<~'RUBY') # FIXME: Why is this tSTRING_END
+          /2#{56}8/
+          %r(#{6}8)
+        RUBY
+      end
 
-        :"_#{7}8"
-      RUBY
+      it 'accepts lines constisting of only interpolated symbol literals' do
+        expect_no_offenses(<<~'RUBY') # FIXME: Why is this tSTRING_END
+          :"_#{7}8"
+        RUBY
+      end
     end
 
     it "accepts a line containing adjacent string literals" do
       expect_no_offenses("'abc' '123'")
     end
 
-    it "accepts a line containing just a literal with trailing comma" do
-      expect_no_offenses(<<~RUBY)
-        foo(
-          "4567",
-        )
-      RUBY
-    end
+    context 'lines not consisting strictly of literals' do
+      it "accepts a line containing just a literal with trailing comma" do
+        expect_no_offenses(<<~RUBY)
+          foo(
+            "4567",
+          )
+        RUBY
+      end
 
-    it "rejects lines containing things other than literals" do
-      expect_offense(<<~RUBY)
-        v = '678'
-                ^ Line is too long. [9/8]
+      it 'rejects lines containing assignment' do
+        expect_offense(<<~RUBY)
+          v = '678'
+                  ^ Line is too long. [9/8]
+        RUBY
+      end
 
-        '234567';
-                ^ Line is too long. [9/8]
+      it 'rejects lines containing semi-colons' do
+        expect_offense(<<~RUBY)
+          '234567';
+                  ^ Line is too long. [9/8]
+        RUBY
+      end
 
-        {
-          a: 'bc'
-                ^ Line is too long. [9/8]
-        }
+      it 'rejects lines containing hash key-value pairs' do
+        expect_offense(<<~RUBY)
+          {
+            a: 'bc'
+                  ^ Line is too long. [9/8]
+          }
+        RUBY
+      end
 
-        '' # text
-                ^ Line is too long. [9/8]
+      it 'rejects lines containing comments' do
+        expect_offense(<<~RUBY)
+          '' # text
+                  ^ Line is too long. [9/8]
+        RUBY
+      end
 
-        1 + 56789
-                ^ Line is too long. [9/8]
+      it 'rejects lines containing operators' do
+        expect_offense(<<~RUBY)
+          1 + 56789
+                  ^ Line is too long. [9/8]
 
-        (2345678)
-                ^ Line is too long. [9/8]
-      RUBY
+          1 << 6789
+                  ^ Line is too long. [9/8]
+        RUBY
+      end
+
+      it 'rejects lines containing parentheses' do
+        expect_offense(<<~RUBY)
+          (2345678)
+                  ^ Line is too long. [9/8]
+        RUBY
+      end
+
+      it 'rejects lines containing array literal delimiters' do
+        expect_offense(<<~RUBY)
+          [2345678]
+                  ^ Line is too long. [9/8]
+        RUBY
+      end
     end
 
     context 'with disallowed interpolation' do
@@ -110,7 +173,7 @@ RSpec.describe RuboCop::Cop::Metrics::LineLength, :config do
         { 'Max' => 8, 'AllowLiterals' => { 'AllowInterpolation' => false, }, }
       end
 
-      it "accepts lines consisting only of literals" do
+      it "accepts lines consisting only of literals" do # TODO: Replace this with a shared example
         expect_no_offenses(<<~RUBY)
           '2345678'
           "2345678"
