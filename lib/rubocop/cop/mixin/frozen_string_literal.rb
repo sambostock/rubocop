@@ -18,6 +18,11 @@ module RuboCop
 
       private
 
+      def frozen_string_literal?(node)
+        FROZEN_STRING_LITERAL_TYPES.include?(node.type) &&
+          frozen_string_literals_enabled?
+      end
+
       def frozen_string_literals_enabled?
         ruby_version = processed_source.ruby_version
         return false unless ruby_version

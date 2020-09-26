@@ -95,8 +95,7 @@ module RuboCop
 
           return unless mutable_literal?(value) ||
                         range_enclosed_in_parentheses
-          return if FROZEN_STRING_LITERAL_TYPES.include?(value.type) &&
-                    frozen_string_literals_enabled?
+          return if frozen_string_literal?(value)
 
           add_offense(value) do |corrector|
             autocorrect(corrector, value)
@@ -124,11 +123,6 @@ module RuboCop
 
         def immutable_literal?(node)
           node.nil? || node.immutable_literal?
-        end
-
-        def frozen_string_literal?(node)
-          FROZEN_STRING_LITERAL_TYPES.include?(node.type) &&
-            frozen_string_literals_enabled?
         end
 
         def requires_parentheses?(node)

@@ -37,8 +37,7 @@ module RuboCop
 
           return true if node.immutable_literal?
 
-          FROZEN_STRING_LITERAL_TYPES.include?(node.type) &&
-            frozen_string_literals_enabled?
+          frozen_string_literal?(node)
         end
 
         def strip_parenthesis(node)
