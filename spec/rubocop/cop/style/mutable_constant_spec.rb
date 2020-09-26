@@ -420,6 +420,7 @@ RSpec.describe RuboCop::Cop::Style::MutableConstant, :config do
       let(:prefix) { '# frozen_string_literal: true' }
 
       it_behaves_like 'immutable objects', '"#{a}"'
+      it_behaves_like 'immutable objects', '("#{a}" "")'
     end
 
     context 'when the frozen string literal comment is false' do

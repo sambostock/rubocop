@@ -84,6 +84,7 @@ module RuboCop
           return if immutable_literal?(value)
           return if operation_produces_immutable_object?(value)
           return if frozen_string_literal?(value)
+          return if empty_begin?(value)
 
           add_offense(value) do |corrector|
             autocorrect(corrector, value)
@@ -96,10 +97,17 @@ module RuboCop
           return unless mutable_literal?(value) ||
                         range_enclosed_in_parentheses
           return if frozen_string_literal?(value)
+          return if empty_begin?(value)
 
           add_offense(value) do |corrector|
             autocorrect(corrector, value)
           end
+        end
+
+        def empty_begin?(node)
+          node = strip_parenthesis(node)
+
+          node.begin_type? && node.children.empty?
         end
 
         def autocorrect(corrector, node)

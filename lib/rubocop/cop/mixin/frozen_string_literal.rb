@@ -19,8 +19,15 @@ module RuboCop
       private
 
       def frozen_string_literal?(node)
+        node = strip_parenthesis(node)
+
         FROZEN_STRING_LITERAL_TYPES.include?(node.type) &&
           frozen_string_literals_enabled?
+      end
+
+      def strip_parenthesis(node)
+        node = node.each_child_node.first while node.begin_type? && node.each_child_node.one?
+        node
       end
 
       def frozen_string_literals_enabled?

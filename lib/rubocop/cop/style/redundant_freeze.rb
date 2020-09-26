@@ -40,14 +40,6 @@ module RuboCop
           frozen_string_literal?(node)
         end
 
-        def strip_parenthesis(node)
-          if node.begin_type? && node.children.first
-            node.children.first
-          else
-            node
-          end
-        end
-
         def_node_matcher :operation_produces_immutable_object?, <<~PATTERN
           {
             (begin (send {float int} {:+ :- :* :** :/ :% :<<} _))
