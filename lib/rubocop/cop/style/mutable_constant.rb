@@ -123,7 +123,11 @@ module RuboCop
         end
 
         def immutable_literal?(node)
-          node.nil? || node.immutable_literal?
+          node.nil? || node.immutable_literal? || empty_begin?(node)
+        end
+
+        def empty_begin?(node)
+          node.begin_type? && node.child_nodes.empty? # resolves to nil
         end
 
         def frozen_string_literal?(node)

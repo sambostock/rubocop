@@ -53,6 +53,7 @@ RSpec.describe RuboCop::Cop::Style::MutableConstant, :config do
     it_behaves_like 'mutable objects', '"top#{1 + 2}"'
 
     it_behaves_like 'immutable objects', 'nil'
+    it_behaves_like 'immutable objects', '()'
     it_behaves_like 'immutable objects', '1'
     it_behaves_like 'immutable objects', '1.5'
     it_behaves_like 'immutable objects', ':sym'
@@ -213,6 +214,7 @@ RSpec.describe RuboCop::Cop::Style::MutableConstant, :config do
     it_behaves_like 'mutable objects', 'Something.new'
 
     it_behaves_like 'immutable objects', 'nil'
+    it_behaves_like 'immutable objects', '()'
     it_behaves_like 'immutable objects', '1'
     it_behaves_like 'immutable objects', '1.5'
     it_behaves_like 'immutable objects', ':sym'

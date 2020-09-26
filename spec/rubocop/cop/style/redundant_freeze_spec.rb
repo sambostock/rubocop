@@ -19,6 +19,7 @@ RSpec.describe RuboCop::Cop::Style::RedundantFreeze do
   end
 
   it_behaves_like 'immutable objects', 'nil'
+  it_behaves_like 'immutable objects', '()'
   it_behaves_like 'immutable objects', '1'
   it_behaves_like 'immutable objects', '1.5'
   it_behaves_like 'immutable objects', ':sym'
