@@ -1,6 +1,7 @@
 # Change log
 
 ## master (unreleased)
+* [#PENDING](https://github.com/rubocop-hq/rubocop/pull/PENDING): Treat freezing `()` the same as freezing `nil`. ([@sambostock][])
 
 ## 0.92.0 (2020-09-25)
 
