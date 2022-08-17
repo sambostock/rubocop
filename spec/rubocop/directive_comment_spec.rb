@@ -141,6 +141,28 @@ RSpec.describe RuboCop::DirectiveComment do
     end
   end
 
+  describe '#todo?' do
+    subject { directive_comment.todo? }
+
+    context 'when disable' do
+      let(:text) { '# rubocop:disable all' }
+
+      it { is_expected.to be(false) }
+    end
+
+    context 'when enable' do
+      let(:text) { '# rubocop:enable Foo/Bar' }
+
+      it { is_expected.to be(false) }
+    end
+
+    context 'when todo' do
+      let(:text) { '# rubocop:todo all' }
+
+      it { is_expected.to be(true) }
+    end
+  end
+
   describe '#enabled?' do
     subject { directive_comment.enabled? }
 

@@ -61,6 +61,11 @@ module RuboCop
       %w[disable todo].include?(mode)
     end
 
+    # Checks if this directive disables cops via "todo"
+    def todo?
+      mode == 'todo'
+    end
+
     # Checks if this directive enables cops
     def enabled?
       mode == 'enable'
