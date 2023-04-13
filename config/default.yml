@@ -3438,6 +3438,11 @@ Style/CommentAnnotation:
     - NOTE
   RequireColon: true
 
+Style/CommentPrefix:
+  Description: 'TODO: Write a description of the cop.'
+  Enabled: pending
+  VersionAdded: '<<next>>'
+
 Style/CommentedKeyword:
   Description: 'Do not place comments on the same line as certain keywords.'
   Enabled: true
